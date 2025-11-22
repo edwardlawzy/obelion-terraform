@@ -67,7 +67,7 @@ resource "aws_instance" "frontend" {
   key_name      = var.keypair_name
   subnet_id     = module.vpc.public_subnet_ids[0]
   associate_public_ip_address = true
-  security_groups = module.vpc.asg_sg
+  security_groups = [module.vpc.asg_sg]
 
   root_block_device {
     volume_size = var.volume_size
@@ -85,7 +85,7 @@ resource "aws_instance" "backend" {
   key_name      = var.keypair_name
   subnet_id     = module.vpc.public_subnet_ids[0]
   associate_public_ip_address = true
-  security_groups = module.vpc.asg_sg
+  security_groups = [module.vpc.asg_sg]
 
   root_block_device {
     volume_size = var.volume_size
