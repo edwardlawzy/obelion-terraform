@@ -6,10 +6,7 @@ variable "aws_region" {
   type        = string
 }
 
-variable "wordpress_ami_id" {
-  description = "The ID of the custom WordPress AMI to use for the Launch Template."
-  type        = string
-}
+
 variable "db_name" {
   description = "The Database name on database instance."
   type        = string
@@ -44,8 +41,6 @@ variable "project_name" {
 } 
 
 
-variable "asg_threshold" { type = number }
-variable "asg_cooldown" { type = number }
 
 variable "keypair_name" {type = string} 
 
