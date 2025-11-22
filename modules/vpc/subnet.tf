@@ -25,7 +25,7 @@ resource "aws_subnet" "private" {
 
 resource "aws_db_subnet_group" "rds_sng" {
   name       = "${var.project_name}-rds-sng"
-  subnet_ids = aws_subnet.private.*.id
+  subnet_ids = aws_subnet.pulic.*.id
   #subnet_ids = aws_subnet.public[0].id
   tags       = { Name = "RDS Subnet Group" }
 }

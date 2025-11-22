@@ -11,4 +11,5 @@ resource "aws_db_instance" "wordpress_db" {
   vpc_security_group_ids = [var.db_sg]
   skip_final_snapshot    = true
   publicly_accessible    = false
+  multi_az               = false
 }
