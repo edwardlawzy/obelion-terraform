@@ -28,7 +28,7 @@ db_engine_version   = "8.0"
 #--------- Network ---------#
 #---------------------------#
 
-vpc_subnet_count = "1"
+vpc_subnet_count = "2"
 vpc_cidr = "192.168.0.0/16"
 vpc_private_subnet = "192.168.1.0/24"
 vpc_public_subnet = "192.168.100.0/24"
