@@ -9,11 +9,6 @@ resource "aws_vpc" "vpc" {
 }
 
 
-/////////////////////////////
-
-
-//////////////////////////////
-
 data "aws_availability_zones" "available" {
   state    = "available"
 }

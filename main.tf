@@ -31,25 +31,67 @@ module "vpc" {
   aws_region     = var.aws_region
 }
 
-module "app" {
-  source = "./modules/eks"
+module "db" {
+  source = "./modules/db"
 
-  vpc_id                = module.vpc.vpc_id
-  public_subnet_ids     = module.vpc.public_subnet_ids
-  private_subnet_ids    = module.vpc.private_subnet_ids
+  db_name           = var.db_name
+  db_username       = var.db_username
+  db_password       = var.db_password
+  db_instance_class = var.db_instance_class
+  db_engine_version = var.db_engine_version
+  db_sng_id         = module.vpc.db_sng_id
+  db_sng_name       = module.vpc.db_sng_name
+  db_sg             = module.vpc.db_sg
 
-  #bastion_subnet_ids = [module.vpc.public_subnet_ids]
-  # bastion_sg_id = module.vpc.asg_sg.id
-
-  keypair_name = "edward"
-
-  instance_type         = var.instance_type
-  desired_capacity      = 2
-  max_capacity          = 4
-  min_capacity          = 2
-
+  project_name      = var.project_name
   
+}
 
-  project_name = var.project_name
-  ami_type = "AL2023_x86_64_STANDARD"
+data "aws_ami" "ubuntu" {
+  most_recent = true
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-jammy-22.04-amd64-server-*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  owners = ["099720109477"] # Canonical
+}
+
+# Frontend Machine
+resource "aws_instance" "frontend" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+  key_name      = var.keypair_name
+  subnet_id     = module.vpc.public_subnet_ids
+  associate_public_ip_address = true
+  security_groups = module.vpc.asg_sg
+
+  root_block_device {
+    volume_size = var.volume_size
+  }
+
+  tags = {
+    Name = "${var.project_name}-Frontend"
+  }
+}
+
+# Backend Machine
+resource "aws_instance" "backend" {
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+  key_name      = var.keypair_name
+  subnet_id     = module.vpc.public_subnet_ids
+  associate_public_ip_address = true
+  security_groups = module.vpc.asg_sg
+
+  root_block_device {
+    volume_size = var.volume_size
+  }
+
+  tags = {
+    Name = "${var.project_name}-Backend"
+  }
 }

@@ -52,8 +52,7 @@ variable "keypair_name" {type = string}
 variable "vpc_cidr" {type = string} 
 variable "vpc_private_subnet" {type = string}
 variable "vpc_public_subnet" {type = string} 
-#variable "bastion_subnet_ids" { type = list(string) }
-#variable "bastion_sg_id"{}
+
 
 
 variable "vpc_private_subnet_prefix" {
@@ -71,4 +70,6 @@ variable "new_bits" {
   type        = number
   default     = 8
 }
+
+variable "volume_size" { type = number }
 
