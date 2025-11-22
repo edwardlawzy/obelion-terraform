@@ -65,8 +65,7 @@ resource "aws_instance" "frontend" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
   key_name      = var.keypair_name
-  for_each = toset(module.vpc.public_subnet_ids)
-  subnet_id     = each.value
+  subnet_id     = module.vpc.public_subnet_ids[0]
   associate_public_ip_address = true
   security_groups = module.vpc.asg_sg
 
@@ -84,8 +83,7 @@ resource "aws_instance" "backend" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
   key_name      = var.keypair_name
-  for_each = toset(module.vpc.public_subnet_ids)
-  subnet_id     = each.value
+  subnet_id     = module.vpc.public_subnet_ids[0]
   associate_public_ip_address = true
   security_groups = module.vpc.asg_sg
 
