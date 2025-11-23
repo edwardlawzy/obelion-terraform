@@ -1,5 +1,5 @@
-resource "aws_security_group" "asg_sg" {
-  name        = "${var.project_name}-asg-sg"
+resource "aws_security_group" "ec2_sg" {
+  name        = "${var.project_name}-ec2-sg"
   vpc_id      = aws_vpc.vpc.id
 
 # // WILL BE REMOVED
@@ -67,6 +67,6 @@ resource "aws_security_group" "rds_sg" {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    security_groups = [aws_security_group.asg_sg.id] # Only allow access from ASG
+    security_groups = [aws_security_group.ec2_sg.id] # Only allow access from ec2
   }
 }

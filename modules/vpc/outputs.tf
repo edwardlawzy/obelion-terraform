@@ -3,8 +3,8 @@ output "public_subnet_ids" { value = aws_subnet.public[*].id }
 output "private_subnet_ids" { value = aws_subnet.private[*].id }
 
 
-output "asg_sg" {
-  value = aws_security_group.asg_sg.id
+output "ec2_sg" {
+  value = aws_security_group.ec2_sg.id
 }
 
 output "db_sng_id" {
