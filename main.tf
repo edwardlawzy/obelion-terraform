@@ -62,26 +62,44 @@ data "aws_ami" "ubuntu" {
 
 # Frontend Machine
 
-# resource "aws_launch_template" "frontend_lt" {
-#   name_prefix   = "${var.project_name}-Frontend-lt"
-#   image_id      = var.wordpress_ami_id
-#   instance_type = var.instance_type
-#   key_name      = var.keypair_name
+resource "aws_launch_template" "frontend_lt" {
+  name_prefix   = "${var.project_name}-Frontend-lt"
+ image_id      = data.aws_ami.ubuntu.id
+ instance_type = var.instance_type
+ key_name      = var.keypair_name
 
-#   network_interfaces {
-#     associate_public_ip_address = true
-#     security_groups             = [var.asg_sg]
-#   }
+ network_interfaces {
+   associate_public_ip_address = true
+   security_groups             = [module.vpc.asg_sg]
+ }
 
-#   user_data = base64encode(<<EOF
-# #!/bin/bash
-# # sed -i 's/database_name_here/${var.db_address}/g' /var/www/html/wp-config.php
-# # sed -i 's/username_here/${var.db_username}/g' /var/www/html/wp-config.php
-# # sed -i 's/password_here/${var.db_password}/g' /var/www/html/wp-config.php
-#  sed -i 's/192.168.101.101/${var.db_address}/g' /var/www/html/wp-config.php
-# EOF
-# )
-# }
+  user_data = base64encode(<<EOF
+#!/bin/bash
+echo "Install Started.." > /home/ubuntu/output.txt
+sudo apt update -y >> /home/ubuntu/output.txt
+sudo apt install ca-certificates curl gnupg lsb-release -y >> /home/ubuntu/output.txt
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+echo "Docker GPG Added.." >> /home/ubuntu/output.txt
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+sudo apt update -y >> /home/ubuntu/output.txt
+sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y >> /home/ubuntu/output.txt
+echo "Docker Installed.." >> /home/ubuntu/output.txt
+
+sudo usermod -aG docker $USER
+newgrp docker
+
+mkdir uptime-kuma
+cd uptime-kuma
+curl -o compose.yaml https://raw.githubusercontent.com/louislam/uptime-kuma/master/compose.yaml
+docker compose up -d
+echo "Uptime Kuma Running.." >> /home/ubuntu/output.txt
+EOF
+)
+}
 
 resource "aws_instance" "frontend" {
   ami           = data.aws_ami.ubuntu.id
@@ -93,6 +111,10 @@ resource "aws_instance" "frontend" {
 
   root_block_device {
     volume_size = var.volume_size
+  }
+    launch_template {
+    id      = aws_launch_template.frontend_lt.id
+    version = "$Latest"
   }
 
   tags = {
