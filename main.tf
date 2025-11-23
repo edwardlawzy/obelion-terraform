@@ -146,13 +146,12 @@ sudo php artisan config:clear
 echo "Config Cleared.." >> /home/ubuntu/output.txt
 sudo php artisan cache:clear
 echo "Cache Cleared.." >> /home/ubuntu/output.txt
-sudo php artisan key:generate
-echo "Key Generated.." >> /home/ubuntu/output.txt
 
 
 
 
-sed -i '/^DB_CONNECTION=/s/=sqlite/mysql/' .env.example
+
+sed -i '/^DB_CONNECTION=/s/sqlite/mysql/' .env.example
 sed -i '/^# DB_PORT=3306/s/# DB_PORT=3306/DB_PORT=3306/' .env.example
 sed -i '/^# DB_DATABASE=laravel/s/# DB_DATABASE=laravel/DB_DATABASE=${var.db_name}/' .env.example
 sed -i '/^# DB_USERNAME=root/s/# DB_USERNAME=root/DB_USERNAME=${var.db_username}/' .env.example
@@ -162,6 +161,10 @@ sed -i '/^# DB_HOST=127.0.0.1/s/# DB_HOST=127.0.0.1/DB_HOST=${module.db.db_addre
 
 sudo cp .env{.example,}
 echo ".env File Created.." >> /home/ubuntu/output.txt
+sudo php artisan key:generate
+echo "Key Generated.." >> /home/ubuntu/output.txt
+sudo php artisan migrate
+echo "DB Migrated.." >> /home/ubuntu/output.txt
 sudo php artisan serve --host=0.0.0.0 &
 echo "Serving.." >> /home/ubuntu/output.txt
 EOF
