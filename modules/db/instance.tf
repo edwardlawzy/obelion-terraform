@@ -1,4 +1,4 @@
-resource "aws_db_instance" "wordpress_db" {
+resource "aws_db_instance" "db" {
   allocated_storage      = 20
   engine                 = "mysql"
   engine_version         = var.db_engine_version
