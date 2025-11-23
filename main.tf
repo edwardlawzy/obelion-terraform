@@ -239,8 +239,8 @@ resource "aws_sns_topic_subscription" "email_subscription" {
   endpoint  = "em14122015@gmail.com"
 }
 
-resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
-  alarm_name          = "high-cpu-utilization-alarm"
+resource "aws_cloudwatch_metric_alarm" "backend-high_cpu_alarm" {
+  alarm_name          = "backend-high-cpu-utilization-alarm"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods  = "2"
   metric_name         = "CPUUtilization"
@@ -248,13 +248,31 @@ resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
   period              = "300" # 5 minutes
   statistic           = "Average"
   threshold           = "50" # Percentage
-  alarm_description   = "This alarm monitors EC2 CPU utilization"
+  alarm_description   = "This alarm monitors Backend EC2 CPU utilization"
   actions_enabled     = true
   alarm_actions       = [aws_sns_topic.ec2_alerts_topic.arn]
   ok_actions          = [aws_sns_topic.ec2_alerts_topic.arn]
 
   dimensions = {
-    InstanceId = aws_instance.backend.id,
+    InstanceId = aws_instance.backend.id
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "frontend-high_cpu_alarm" {
+  alarm_name          = "frontend-high-cpu-utilization-alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "300" # 5 minutes
+  statistic           = "Average"
+  threshold           = "50" # Percentage
+  alarm_description   = "This alarm monitors Frontend EC2 CPU utilization"
+  actions_enabled     = true
+  alarm_actions       = [aws_sns_topic.ec2_alerts_topic.arn]
+  ok_actions          = [aws_sns_topic.ec2_alerts_topic.arn]
+
+  dimensions = {
     InstanceId = aws_instance.frontend.id
   }
 }
