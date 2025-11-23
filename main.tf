@@ -11,7 +11,9 @@ provider "aws" {
   region = var.aws_region
 }
 
-
+################################################################################################################
+############################################        VPC        #################################################
+################################################################################################################
 
 module "vpc" {
   source = "./modules/vpc"
@@ -30,6 +32,11 @@ module "vpc" {
   #private_subnets = ["192.168.101.0/24", "192.168.102.0/24"]
   aws_region     = var.aws_region
 }
+
+################################################################################################################
+############################################        DB         #################################################
+################################################################################################################
+
 
 module "db" {
   source = "./modules/db"
@@ -60,7 +67,9 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-# Frontend Machine
+#########################################################################################################################
+############################################        Frontend EC2        #################################################
+#########################################################################################################################
 
 resource "aws_launch_template" "frontend_lt" {
   name_prefix   = "${var.project_name}-Frontend-lt"
@@ -122,7 +131,9 @@ resource "aws_instance" "frontend" {
   }
 }
 
-# Backend Machine
+########################################################################################################################
+############################################        Backend EC2        #################################################
+########################################################################################################################
 
 resource "aws_launch_template" "backend_lt" {
   name_prefix   = "${var.project_name}-backend-lt"
@@ -211,5 +222,39 @@ resource "aws_instance" "backend" {
 
   tags = {
     Name = "${var.project_name}-Backend"
+  }
+}
+
+#########################################################################################################################
+############################################        Email Alerts        #################################################
+#########################################################################################################################
+
+resource "aws_sns_topic" "ec2_alerts_topic" {
+  name = "ec2-alerts-topic"
+}
+
+resource "aws_sns_topic_subscription" "email_subscription" {
+  topic_arn = aws_sns_topic.ec2_alerts_topic.arn
+  protocol  = "email"
+  endpoint  = "em14122015@gmail.com"
+}
+
+resource "aws_cloudwatch_metric_alarm" "high_cpu_alarm" {
+  alarm_name          = "high-cpu-utilization-alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "300" # 5 minutes
+  statistic           = "Average"
+  threshold           = "50" # Percentage
+  alarm_description   = "This alarm monitors EC2 CPU utilization"
+  actions_enabled     = true
+  alarm_actions       = [aws_sns_topic.ec2_alerts_topic.arn]
+  ok_actions          = [aws_sns_topic.ec2_alerts_topic.arn]
+
+  dimensions = {
+    InstanceId = aws_instance.backend.id,
+    InstanceId = aws_instance.frontend.id
   }
 }
