@@ -72,7 +72,7 @@ data "aws_ami" "ubuntu" {
 #########################################################################################################################
 
 resource "aws_launch_template" "frontend_lt" {
-  name_prefix   = "${var.project_name}-Frontend-lt"
+  name_prefix   = "${var.project_name}-frontend-lt"
  image_id      = data.aws_ami.ubuntu.id
  instance_type = var.instance_type
  key_name      = var.keypair_name
