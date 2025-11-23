@@ -61,6 +61,28 @@ data "aws_ami" "ubuntu" {
 }
 
 # Frontend Machine
+
+# resource "aws_launch_template" "frontend_lt" {
+#   name_prefix   = "${var.project_name}-Frontend-lt"
+#   image_id      = var.wordpress_ami_id
+#   instance_type = var.instance_type
+#   key_name      = var.keypair_name
+
+#   network_interfaces {
+#     associate_public_ip_address = true
+#     security_groups             = [var.asg_sg]
+#   }
+
+#   user_data = base64encode(<<EOF
+# #!/bin/bash
+# # sed -i 's/database_name_here/${var.db_address}/g' /var/www/html/wp-config.php
+# # sed -i 's/username_here/${var.db_username}/g' /var/www/html/wp-config.php
+# # sed -i 's/password_here/${var.db_password}/g' /var/www/html/wp-config.php
+#  sed -i 's/192.168.101.101/${var.db_address}/g' /var/www/html/wp-config.php
+# EOF
+# )
+# }
+
 resource "aws_instance" "frontend" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
@@ -79,6 +101,73 @@ resource "aws_instance" "frontend" {
 }
 
 # Backend Machine
+
+resource "aws_launch_template" "backend_lt" {
+  name_prefix   = "${var.project_name}-backend-lt"
+  image_id      = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+  key_name      = var.keypair_name
+
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [module.vpc.asg_sg]
+  }
+
+  user_data = base64encode(<<EOF
+#!/bin/bash
+echo "Install Started.." > /home/ubuntu/output.txt
+sudo apt update -y >> /home/ubuntu/output.txt
+sudo apt install software-properties-common -y >> /home/ubuntu/output.txt
+sudo add-apt-repository ppa:ondrej/php -y >> /home/ubuntu/output.txt
+sudo apt update -y >> /home/ubuntu/output.txt
+sudo apt install php8.3 -y >> /home/ubuntu/output.txt
+sudo add-apt-repository ppa:ondrej/php -y >> /home/ubuntu/output.txt
+sudo apt update -y >> /home/ubuntu/output.txt
+sudo apt install php8.3-xml php8.3-curl php8.3-mysql php8.3-mbstring -y >> /home/ubuntu/output.txt
+
+echo "Done Installing PHP.." >> /home/ubuntu/output.txt
+
+sudo php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" >> /home/ubuntu/output.txt
+sudo php -r "if (hash_file('sha384', 'composer-setup.php') === 'c8b085408188070d5f52bcfe4ecfbee5f727afa458b2573b8eaaf77b3419b0bf2768dc67c86944da1544f06fa544fd47') { echo 'Installer verified'.PHP_EOL; } else { echo 'Installer corrupt'.PHP_EOL; unlink('composer-setup.php'); exit(1); }" >> /home/ubuntu/output.txt
+sudo php composer-setup.php >> /home/ubuntu/output.txt
+sudo php -r "unlink('composer-setup.php');" >> /home/ubuntu/output.txt
+sudo mv composer.phar /usr/local/bin/composer >> /home/ubuntu/output.txt
+
+echo "Done Installing Composer.." >> /home/ubuntu/output.txt
+
+cd /var/www/html >> /home/ubuntu/output.txt
+sudo git clone https://github.com/edwardlawzy/obelion-backend.git >> /home/ubuntu/output.txt
+cd obelion-backend >> /home/ubuntu/output.txt
+echo "Repo Cloned.." >> /home/ubuntu/output.txt
+
+sudo composer install --no-interaction --prefer-dist --optimize-autoloader >> /home/ubuntu/output.txt
+
+sudo php artisan config:clear 
+echo "Config Cleared.." >> /home/ubuntu/output.txt
+sudo php artisan cache:clear
+echo "Cache Cleared.." >> /home/ubuntu/output.txt
+sudo php artisan key:generate
+echo "Key Generated.." >> /home/ubuntu/output.txt
+
+
+
+
+sed -i '/^DB_CONNECTION=/s/=sqlite/mysql/' .env.example
+sed -i '/^# DB_PORT=3306/s/# DB_PORT=3306/DB_PORT=3306/' .env.example
+sed -i '/^# DB_DATABASE=laravel/s/# DB_DATABASE=laravel/DB_DATABASE=${var.db_name}/' .env.example
+sed -i '/^# DB_USERNAME=root/s/# DB_USERNAME=root/DB_USERNAME=${var.db_username}/' .env.example
+sed -i '/^# DB_PASSWORD=/s/# DB_PASSWORD=/DB_PASSWORD=${var.db_password}/' .env.example
+sed -i '/^# DB_HOST=127.0.0.1/s/# DB_HOST=127.0.0.1/DB_HOST=${module.db.db_address}/' .env.example
+
+
+sudo cp .env{.example,}
+echo ".env File Created.." >> /home/ubuntu/output.txt
+sudo php artisan serve --host=0.0.0.0 &
+echo "Serving.." >> /home/ubuntu/output.txt
+EOF
+)
+}
+
 resource "aws_instance" "backend" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
@@ -89,6 +178,10 @@ resource "aws_instance" "backend" {
 
   root_block_device {
     volume_size = var.volume_size
+  }
+  launch_template {
+    id      = aws_launch_template.backend_lt.id
+    version = "$Latest"
   }
 
   tags = {
