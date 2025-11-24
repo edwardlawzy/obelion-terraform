@@ -1,15 +1,13 @@
-variable "vpc_cidr" {}
-#variable "public_subnets" { type = list(string) }
-#variable "private_subnets" { type = list(string) }
-variable "aws_region" {}
-variable "project_name" {type = string} 
+variable "vpc_cidr" {} //VPC CIDR
+variable "aws_region" {} //AWS Region
+variable "project_name" {type = string} //Project Name to be used as a prefix
 
-variable "vpc_private_subnet" {type = string}
-variable "vpc_public_subnet" {type = string} 
-variable "vpc_subnet_count" {type = string} 
+variable "vpc_private_subnet" {type = string} //VPC Private Subnet
+variable "vpc_public_subnet" {type = string}  //VPC Public Subnet
+variable "vpc_subnet_count" {type = string}   //VPC Subnet Count that will be used to automate the subnet creation
 
-variable "vpc_private_subnet_prefix" {type = string}
-variable "vpc_public_subnet_prefix" {type = string} 
+variable "vpc_private_subnet_prefix" {type = string} //VPC Private Subnet Prefix that is used to automate the subnet creation (192.168.1.0/16)
+variable "vpc_public_subnet_prefix" {type = string} //VPC Public Subnet Prefix that is used to automate the subnet creation (192.168.100.0/16)
 
 
 variable "new_bits" {
